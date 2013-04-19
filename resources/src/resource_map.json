@@ -4,8 +4,8 @@
  "media": [
         {
         "type": "png",
-        "defName": "IMAGE_MENU_ICON",
-        "file": "images/menu_icon_simplicity.png"
+        "defName": "IMAGE_APPLE_LOGO",
+        "file": "images/ilogo.png"
         },
 
         {

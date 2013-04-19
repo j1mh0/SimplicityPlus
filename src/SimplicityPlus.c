@@ -6,11 +6,12 @@
 #define MY_UUID { 0x16, 0x54, 0xF7, 0xAA, 0x3D, 0x24, 0x4E, 0xF5, 0xAB, 0xDA, 0x6F, 0xC0, 0x15, 0x12, 0xB1, 0xC7 }
 PBL_APP_INFO(MY_UUID,
              "SimplicityPlus", "Jim Ho",
-             1, 0, /* App version */
+             1, 1, /* App version */
              DEFAULT_MENU_ICON,
              APP_INFO_WATCH_FACE);
 
 Window window;
+BmpContainer image_container;
 
 
 int firstrun = 1; // Variable to check for first run. 1 - YES. 0 - NO.
@@ -20,7 +21,9 @@ TextLayer text_date_layer;
 TextLayer text_time_layer;
 TextLayer text_time_second_layer;
 
+
 Layer line_layer;
+Layer image_layer;
 
 
 void line_layer_update_callback(Layer *me, GContext* ctx) {
@@ -28,9 +31,27 @@ void line_layer_update_callback(Layer *me, GContext* ctx) {
     
     graphics_context_set_stroke_color(ctx, GColorWhite);
     
-    graphics_draw_line(ctx, GPoint(6, 75), GPoint(144-6, 75));
-    graphics_draw_line(ctx, GPoint(6, 76), GPoint(144-6, 76));
+    graphics_draw_line(ctx, GPoint(6, 79), GPoint(52, 79));
+    graphics_draw_line(ctx, GPoint(6, 80), GPoint(52, 80));
+    graphics_draw_line(ctx, GPoint(92, 79), GPoint(144-6, 79));
+    graphics_draw_line(ctx, GPoint(92, 80), GPoint(144-6, 80));
     
+    //graphics_draw_line(ctx, GPoint(6, 79), GPoint(144-6, 79));
+    //raphics_draw_line(ctx, GPoint(6, 80), GPoint(144-6, 80));
+    
+}
+
+void image_layer_update_callback(Layer *me, GContext* ctx) {
+    (void)me;
+    (void)ctx;
+    
+    GRect destination = layer_get_frame(&image_container.layer.layer);
+    
+    
+    destination.origin.x = 62;
+    destination.origin.y = 67;
+    
+    graphics_draw_bitmap_in_rect(ctx, &image_container.bmp, destination);
 }
 
 
@@ -84,7 +105,13 @@ void handle_init(AppContextRef ctx) {
     text_layer_set_text_alignment(&text_time_second_layer, GTextAlignmentLeft);
     layer_add_child(&window.layer, &text_time_second_layer.layer);
     
+    // Apple's Logo
+    layer_init(&image_layer, window.layer.frame);
+    image_layer.update_proc = &image_layer_update_callback;
+    layer_add_child(&window.layer, &image_layer);
+    bmp_init_container(RESOURCE_ID_IMAGE_APPLE_LOGO, &image_container);
     
+    // line
     layer_init(&line_layer, window.layer.frame);
     line_layer.update_proc = &line_layer_update_callback;
     layer_add_child(&window.layer, &line_layer);
@@ -162,10 +189,18 @@ void handle_tick(AppContextRef ctx, PebbleTickEvent *t) {
 }
 
 
+void handle_deinit(AppContextRef ctx) {
+    (void)ctx;
+    
+    // Note: Failure to de-init this here will result in instability and
+    //       unable to allocate memory errors.
+    bmp_deinit_container(&image_container);
+}
+
 void pbl_main(void *params) {
     PebbleAppHandlers handlers = {
         .init_handler = &handle_init,
-        
+        .deinit_handler = &handle_deinit,
         .tick_info = {
             .tick_handler = &handle_tick,
             .tick_units = SECOND_UNIT
